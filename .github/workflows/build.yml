@@ -24,42 +24,40 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Fix gradlew
+      - name: Fix gradlew permissions
         run: |
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
-          ls -la gradlew
 
-      - name: Gradle Version
-        run: ./gradlew --version
+      - name: Clean old build
+        run: ./gradlew clean --quiet
 
-      - name: Clean
-        run: ./gradlew clean --quiet || true
+      - name: Build Mod (Single Strong Attempt)
+        run: |
+          echo "🚀 Starting build..."
+          ./gradlew build --stacktrace --no-daemon 2>&1 | tee build.log
+          echo "✅ Build command finished (exit code: $?)"
 
-      # === MAIN BUILD ATTEMPTS (Multiple Fallbacks) ===
-      - name: Try Build (Normal)
-        id: try1
-        run: ./gradlew build --stacktrace --info 2>&1 | tee build.log
-        continue-on-error: true
-
-      - name: Try remapJar (Fabric/Quilt)
-        if: steps.try1.outcome != 'success'
-        id: try2
-        run: ./gradlew remapJar --stacktrace 2>&1 | tee -a build.log
-        continue-on-error: true
-
-      - name: Try shadowJar (Common for mods)
-        if: steps.try2.outcome != 'success'
-        id: try3
-        run: ./gradlew shadowJar --stacktrace 2>&1 | tee -a build.log
-        continue-on-error: true
-
-      # === DEBUG OUTPUT ===
-      - name: Show Build Summary
+      - name: Show Critical Errors (if any)
         if: always()
         run: |
-          echo "=== LAST 150 LINES OF BUILD LOG ==="
-          tail -n 150 build.log || echo "No build.log found"
-          
-          echo -e "\n=== ERRORS FOUND ==="
-          grep -iE "error|exception|failed|could
+          echo "🔍 Checking for errors..."
+          grep -iE "error|exception|failed|could not" build.log | tail -n 50 || echo "No major errors found"
+
+      - name: List Generated JARs
+        if: always()
+        run: |
+          echo "📦 JAR files found:"
+          find build -name "*.jar" -type f 2>/dev/null || echo "No JAR found"
+          ls -la build/libs 2>/dev/null || echo "build/libs folder missing"
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartCulling-Mod
+          path: |
+            build/libs/*-*.jar
+            !build/libs/*-sources.jar
+            !build/libs/*-dev.jar
+            !build/libs/*-all.jar
+          if-no-files-found: warn
