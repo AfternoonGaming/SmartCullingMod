@@ -14,18 +14,20 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Validate Gradle Wrapper and Build
+      - name: Build and Package Jar
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
-          add-job-summary: 'always'
+          generate-job-summary: true
+          # Yeh instruction system ko force karegi build artifacts banane ke liye
+          build-root-directory: .
+
+      - name: Run Build Task Directly
+        run: gradle jar --no-daemon
 
       - name: Upload Mod JAR
         uses: actions/upload-artifact@v4
         with:
           name: SmartCulling-Jar
-          path: |
-            build/libs/*.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-sources.jar
-            
+          path: build/libs/
+          
