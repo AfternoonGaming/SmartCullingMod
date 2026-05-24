@@ -13,7 +13,7 @@
     "smartculling.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.15.0",
+    "fabricloader": ">=0.19.2",
     "minecraft": "26.x"
   }
 }
