@@ -19,4 +19,13 @@ jobs:
         with:
           cache-disabled: true
           add-job-summary: 'always'
-          
+
+      - name: Upload Mod JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartCulling-Jar
+          path: |
+            build/libs/*.jar
+            !build/libs/*-dev.jar
+            !build/libs/*-sources.jar
+            
