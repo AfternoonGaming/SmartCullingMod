@@ -14,28 +14,18 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Gradle
+      - name: Setup Gradle (Bypass Cache)
         uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-disabled: true
 
-      - name: Generate Gradle Wrapper (If Missing)
+      - name: Generate Compatible Gradle Wrapper
         run: |
-          if [ ! -f gradlew ]; then
-            echo "Gradlew missing! Generating wrapper..."
-            gradle wrapper --gradle-version 8.5
-          fi
+          gradle wrapper --gradle-version 8.7
 
       - name: Make Gradle Executable
         run: chmod +x gradlew
 
       - name: Build Mod JAR
-        run: ./gradlew build --no-daemon
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: SmartCulling-Jar
-          path: |
-            build/libs/*.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-sources.jar
-            
+        run: ./gradlew build --no-daemon --stacktrace
+        
