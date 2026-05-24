@@ -14,11 +14,16 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup and Run Gradle Build
+      - name: Setup Gradle Environment
         uses: gradle/actions/setup-gradle@v4
         with:
-          arguments: build --no-daemon --stacktrace
           cache-disabled: true
+
+      - name: Fix Linux Execution Permissions
+        run: chmod +x gradlew
+
+      - name: Compile Mod JAR
+        run: ./gradlew build --no-daemon --stacktrace
 
       - name: Upload Mod JAR
         uses: actions/upload-artifact@v4
