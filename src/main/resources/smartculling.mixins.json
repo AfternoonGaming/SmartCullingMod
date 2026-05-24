@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.example.culling.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "BlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
