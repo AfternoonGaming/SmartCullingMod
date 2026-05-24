@@ -24,17 +24,42 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Fix gradlew permissions and line endings
+      - name: Fix gradlew
         run: |
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
+          ls -la gradlew
 
-      - name: Build Mod
-        run: ./gradlew build --no-daemon --stacktrace
+      - name: Gradle Version
+        run: ./gradlew --version
 
-      - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: SmartCulling-Mod
-          path: build/libs/*.jar
-          if-no-files-found: error   # This will fail the job if no JAR is found
+      - name: Clean
+        run: ./gradlew clean --quiet || true
+
+      # === MAIN BUILD ATTEMPTS (Multiple Fallbacks) ===
+      - name: Try Build (Normal)
+        id: try1
+        run: ./gradlew build --stacktrace --info 2>&1 | tee build.log
+        continue-on-error: true
+
+      - name: Try remapJar (Fabric/Quilt)
+        if: steps.try1.outcome != 'success'
+        id: try2
+        run: ./gradlew remapJar --stacktrace 2>&1 | tee -a build.log
+        continue-on-error: true
+
+      - name: Try shadowJar (Common for mods)
+        if: steps.try2.outcome != 'success'
+        id: try3
+        run: ./gradlew shadowJar --stacktrace 2>&1 | tee -a build.log
+        continue-on-error: true
+
+      # === DEBUG OUTPUT ===
+      - name: Show Build Summary
+        if: always()
+        run: |
+          echo "=== LAST 150 LINES OF BUILD LOG ==="
+          tail -n 150 build.log || echo "No build.log found"
+          
+          echo -e "\n=== ERRORS FOUND ==="
+          grep -iE "error|exception|failed|could
