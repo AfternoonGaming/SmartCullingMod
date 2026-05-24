@@ -14,15 +14,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build Mod Directly with System Gradle
-        run: gradle build --no-daemon --stacktrace
-
-      - name: Upload Mod JAR
-        uses: actions/upload-artifact@v4
+      - name: Validate Gradle Wrapper and Build
+        uses: gradle/actions/setup-gradle@v4
         with:
-          name: SmartCulling-Jar
-          path: |
-            build/libs/*.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-sources.jar
-            
+          cache-disabled: true
+          add-job-summary: 'always'
+          
