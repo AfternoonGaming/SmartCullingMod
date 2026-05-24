@@ -14,19 +14,19 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Fresh Gradle Environment
+      - name: Setup Gradle Environment
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
 
-      - name: Force Build with Global Gradle Command
-        run: gradle build --no-daemon --stacktrace
+      - name: Auto Fix Line Endings
+        run: |
+          sed -i 's/\r$//' gradlew || true
+          sed -i 's/\r$//' build.gradle || true
 
-      - name: Upload Mod JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: SmartCulling-Jar
-          path: |
-            build/libs/*.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-sources.jar
+      - name: Grant Execute Permission
+        run: chmod +x gradlew
+
+      - name: Build Mod Using Local Wrapper
+        run: ./gradlew build --no-daemon --stacktrace
+        
