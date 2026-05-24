@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main, master ]
   pull_request:
-    branches: [ main, master ]
 
 jobs:
   build:
@@ -24,37 +23,17 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Fix gradlew permissions
+      - name: Fix gradlew
         run: |
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
 
-      - name: Clean previous builds
-        run: ./gradlew clean --quiet
+      - name: Build Mod (remapJar)
+        run: ./gradlew remapJar --stacktrace --no-daemon
 
-      - name: Build with remapJar (Minecraft 26.x Fabric)
-        run: |
-          echo "🚀 Building for Minecraft 26.x using remapJar..."
-          ./gradlew remapJar --stacktrace --no-daemon 2>&1 | tee build.log
-          echo "✅ Build command completed (Exit code: $?)"
-
-      - name: Show Build Errors
-        if: always()
-        run: |
-          echo "🔍 ERROR CHECK:"
-          grep -iE "error|exception|failed|could not|unable" build.log | tail -n 60 || echo "No critical errors found"
-
-      - name: List Generated JARs
-        if: always()
-        run: |
-          echo "📦 Checking for JAR files..."
-          ls -la build/libs/ 2>/dev/null || echo "build/libs folder not found"
-          echo ""
-          find build -name "*.jar" -type f 2>/dev/null || echo "No JAR files generated"
-
-      - name: Upload Smart Culling JAR
+      - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: SmartCulling-Mod-26.x
-          path: build/libs/*-remapped.jar
+          path: build/libs/*.jar
           if-no-files-found: warn
