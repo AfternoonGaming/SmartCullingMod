@@ -19,17 +19,11 @@ jobs:
         with:
           cache-disabled: true
 
-      - name: Fix Hidden Windows Characters (CRLF to LF)
-        run: |
-          sed -i 's/\r$//' gradlew
-          sed -i 's/\r$//' gradle.properties
-          sed -i 's/\r$//' settings.gradle
-
-      - name: Grant Strict Linux Execute Permissions
-        run: chmod +x gradlew
-
-      - name: Force Clean Build Mod
-        run: ./gradlew clean build --no-daemon --stacktrace
+      - name: Build Mod with Gradle Action
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          arguments: clean build --no-daemon --stacktrace
+          cache-disabled: true
 
       - name: Upload Mod JAR
         uses: actions/upload-artifact@v4
