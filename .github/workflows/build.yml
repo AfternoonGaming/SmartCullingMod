@@ -29,35 +29,32 @@ jobs:
           sed -i 's/\r$//' gradlew
           chmod +x gradlew
 
-      - name: Clean old build
+      - name: Clean previous builds
         run: ./gradlew clean --quiet
 
-      - name: Build Mod (Single Strong Attempt)
+      - name: Build with remapJar (Minecraft 26.x Fabric)
         run: |
-          echo "🚀 Starting build..."
-          ./gradlew build --stacktrace --no-daemon 2>&1 | tee build.log
-          echo "✅ Build command finished (exit code: $?)"
+          echo "🚀 Building for Minecraft 26.x using remapJar..."
+          ./gradlew remapJar --stacktrace --no-daemon 2>&1 | tee build.log
+          echo "✅ Build command completed (Exit code: $?)"
 
-      - name: Show Critical Errors (if any)
+      - name: Show Build Errors
         if: always()
         run: |
-          echo "🔍 Checking for errors..."
-          grep -iE "error|exception|failed|could not" build.log | tail -n 50 || echo "No major errors found"
+          echo "🔍 ERROR CHECK:"
+          grep -iE "error|exception|failed|could not|unable" build.log | tail -n 60 || echo "No critical errors found"
 
       - name: List Generated JARs
         if: always()
         run: |
-          echo "📦 JAR files found:"
-          find build -name "*.jar" -type f 2>/dev/null || echo "No JAR found"
-          ls -la build/libs 2>/dev/null || echo "build/libs folder missing"
+          echo "📦 Checking for JAR files..."
+          ls -la build/libs/ 2>/dev/null || echo "build/libs folder not found"
+          echo ""
+          find build -name "*.jar" -type f 2>/dev/null || echo "No JAR files generated"
 
-      - name: Upload JAR
+      - name: Upload Smart Culling JAR
         uses: actions/upload-artifact@v4
         with:
-          name: SmartCulling-Mod
-          path: |
-            build/libs/*-*.jar
-            !build/libs/*-sources.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-all.jar
+          name: SmartCulling-Mod-26.x
+          path: build/libs/*-remapped.jar
           if-no-files-found: warn
