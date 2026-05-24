@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK 21
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -21,11 +21,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+      # YAHAN ADD KARNA HAI
+      - name: Fix gradlew permissions and line endings
+        run: |
+          sed -i 's/\r$//' gradlew
+          chmod +x gradlew
 
-      - name: Build Mod JAR
-        run: ./gradlew build --no-daemon
+      - name: Build Mod
+        run: ./gradlew build --no-daemon --stacktrace
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
